@@ -147,20 +147,18 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .account-card {
+        .site-card {
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            position: relative;
+            margin-bottom: 24px;
             background: rgba(255, 255, 255, 0.04);
             transition: all 0.3s ease;
             animation: cardIn 0.4s ease-out backwards;
+            overflow: hidden;
         }
 
-        .account-card:hover {
+        .site-card:hover {
             border-color: rgba(99, 102, 241, 0.2);
-            background: rgba(255, 255, 255, 0.06);
         }
 
         @keyframes cardIn {
@@ -168,9 +166,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .account-card h3 {
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            background: rgba(99, 102, 241, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .site-title {
             color: #a78bfa;
-            margin-bottom: 20px;
             font-size: 18px;
             font-weight: 600;
             display: flex;
@@ -178,7 +184,7 @@
             gap: 8px;
         }
 
-        .account-card h3::before {
+        .site-title::before {
             content: '';
             display: inline-block;
             width: 4px;
@@ -187,8 +193,41 @@
             border-radius: 2px;
         }
 
+        .site-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .site-body {
+            padding: 20px 24px;
+        }
+
+        .site-site-fields {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .site-site-fields .form-group {
+            margin-bottom: 0;
+        }
+
+        .accounts-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin: 0 0 16px;
+        }
+
+        .accounts-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
@@ -234,6 +273,50 @@
             line-height: 1.5;
         }
 
+        .account-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: accIn 0.3s ease-out backwards;
+        }
+
+        @keyframes accIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .account-item:hover {
+            border-color: rgba(99, 102, 241, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .account-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .account-item-title {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .account-fields {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .account-fields .form-group {
+            margin-bottom: 0;
+        }
+
         .btn {
             padding: 12px 24px;
             border: none;
@@ -276,13 +359,12 @@
             border: 1px solid rgba(245, 101, 101, 0.3);
             color: #f56565;
             font-size: 13px;
-            padding: 8px 16px;
+            padding: 6px 14px;
         }
 
         .btn-danger:hover {
             background: rgba(245, 101, 101, 0.25);
             border-color: rgba(245, 101, 101, 0.5);
-            transform: translateY(-1px);
         }
 
         .btn-secondary {
@@ -296,6 +378,31 @@
             border-color: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
             color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+
+        .btn-xs {
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .add-account-row {
+            display: flex;
+            justify-content: center;
+            padding: 4px 0 0;
         }
 
         .import-section {
@@ -356,25 +463,6 @@
             border-color: #6366f1;
             background: rgba(30, 30, 50, 0.8);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 8px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-        }
-
-        .remove-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
         }
 
         .result-section {
@@ -529,10 +617,7 @@
         @media (max-width: 768px) {
             body { padding: 12px; }
 
-            .container {
-                margin: 0;
-                border-radius: 16px;
-            }
+            .container { margin: 0; border-radius: 16px; }
 
             .content { padding: 20px; }
 
@@ -544,7 +629,15 @@
 
             .btn-group .btn { width: 100%; justify-content: center; }
 
-            .account-card { padding: 18px; }
+            .site-body { padding: 16px; }
+
+            .site-header { padding: 14px 16px; }
+
+            .site-site-fields { grid-template-columns: 1fr; }
+
+            .account-fields { grid-template-columns: 1fr; }
+
+            .account-item { padding: 12px; }
 
             .back-link { display: none; }
         }
@@ -555,14 +648,14 @@
         <div class="header">
             <a href="index.html" class="back-link">← 返回首页</a>
             <h1>🚀 NewAPI 配置生成器</h1>
-            <p>轻松生成多账号签到配置，无需手动编写 JSON</p>
+            <p>轻松生成多账号签到配置，同站点多账号只需填写一次 URL</p>
         </div>
 
         <div class="content">
-            <div id="accounts-container"></div>
+            <div id="sites-container"></div>
 
             <div class="btn-group">
-                <button class="btn btn-primary" onclick="addAccount()">➕ 添加账号</button>
+                <button class="btn btn-primary" onclick="addSite()">➕ 添加站点</button>
                 <button class="btn btn-success" onclick="generateConfig()">✨ 生成配置</button>
             </div>
 
@@ -575,7 +668,7 @@
 
             <div id="import-section" class="import-section" style="display: none;">
                 <h3>📋 导入 JSON 配置</h3>
-                <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 16px;">粘贴已有的 JSON 配置，一键导入并填充表单</p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 16px;">粘贴已有的 JSON 配置，一键导入并按站点自动分组填充表单</p>
                 <textarea id="import-json" class="import-textarea" placeholder='粘贴 JSON 配置，例如：
 [
   {
@@ -593,12 +686,12 @@
             </div>
 
             <div class="tips" style="margin-top: 24px;">
-                <h4>💡 关于本地存储：</h4>
+                <h4>💡 使用提示：</h4>
                 <ul>
+                    <li><strong>站点分组：</strong>同一站点的 URL 和 CF Clearance 只需填写一次，站点下可添加多个账号</li>
+                    <li><strong>账号信息：</strong>每个账号只需填写 Session、用户ID 和备注名称</li>
                     <li><strong>保存到本地：</strong>将配置保存到浏览器本地存储，下次访问自动加载</li>
-                    <li><strong>仅在本机有效：</strong>换电脑或换浏览器需要重新填写</li>
                     <li><strong>明文存储：</strong>数据以明文形式存储在浏览器中，请注意安全</li>
-                    <li><strong>建议：</strong>私人电脑可使用本地存储，公共电脑请勿使用</li>
                 </ul>
             </div>
 
@@ -641,64 +734,106 @@
     </div>
 
     <script>
-        let accountCount = 0;
+        let siteCount = 0;
+        const siteAccountCounts = {};
 
         window.onload = function() {
-            addAccount();
+            addSite();
         };
 
-        function addAccount() {
-            accountCount++;
-            const container = document.getElementById('accounts-container');
+        function addSite() {
+            siteCount++;
+            siteAccountCounts[siteCount] = 0;
+            const container = document.getElementById('sites-container');
 
-            const accountCard = document.createElement('div');
-            accountCard.className = 'account-card';
-            accountCard.id = `account-${accountCount}`;
-            accountCard.innerHTML = `
-                <h3>账号 ${accountCount}</h3>
-                ${accountCount > 1 ? `<button class="btn btn-danger remove-btn" onclick="removeAccount(${accountCount})">删除</button>` : ''}
-
-                <div class="form-group">
-                    <label>站点 URL <span class="required">*</span></label>
-                    <input type="text" id="url-${accountCount}" placeholder="https://api.example.com">
-                    <small>完整的站点地址，如 https://api.example.com</small>
+            const siteCard = document.createElement('div');
+            siteCard.className = 'site-card';
+            siteCard.id = `site-${siteCount}`;
+            siteCard.innerHTML = `
+                <div class="site-header">
+                    <span class="site-title">站点 ${siteCount}</span>
+                    <div class="site-actions">
+                        ${siteCount > 1 ? `<button class="btn btn-danger btn-xs" onclick="removeSite(${siteCount})">删除站点</button>` : ''}
+                    </div>
                 </div>
+                <div class="site-body">
+                    <div class="site-site-fields">
+                        <div class="form-group">
+                            <label>站点 URL <span class="required">*</span></label>
+                            <input type="text" id="site-url-${siteCount}" placeholder="https://api.example.com">
+                            <small>完整的站点地址，同站点下所有账号共享此 URL</small>
+                        </div>
+                        <div class="form-group">
+                            <label>CF Clearance（可选）</label>
+                            <input type="text" id="site-cfclearance-${siteCount}" placeholder="xxsCgaPMM...">
+                            <small>站点级 Cloudflare 防护 Cookie，同站点共享</small>
+                        </div>
+                    </div>
 
-                <div class="form-group">
-                    <label>Session Cookie <span class="required">*</span></label>
-                    <input type="text" id="session-${accountCount}" placeholder="MTc2NzQxMzYzM3xEWDhFQVFMX2...">
-                    <small>从浏览器开发者工具中获取的 session 值</small>
-                </div>
+                    <hr class="accounts-divider">
 
-                <div class="form-group">
-                    <label>用户ID <span class="required">*</span></label>
-                    <input type="text" id="userid-${accountCount}" placeholder="123">
-                    <small>你的用户ID，通常是用户名中的数字（如 user_123 的ID是 123）<br>⚠️ 必填字段，缺少会导致签到失败</small>
-                </div>
+                    <div class="accounts-label">账号列表</div>
+                    <div id="site-accounts-${siteCount}"></div>
 
-                <div class="form-group">
-                    <label>CF Clearance（可选）</label>
-                    <input type="text" id="cfclearance-${accountCount}" placeholder="xxsCgaPMM5nd4S2X...">
-                    <small>仅当站点有 Cloudflare 防护时需要填写，从 Cookie 中获取 cf_clearance 的值</small>
-                </div>
-
-                <div class="form-group">
-                    <label>备注名称（可选）</label>
-                    <input type="text" id="name-${accountCount}" placeholder="主力站 / 备用站">
-                    <small>便于识别，不填则显示为"站点X"</small>
+                    <div class="add-account-row">
+                        <button class="btn btn-primary btn-sm" onclick="addAccountToSite(${siteCount})">➕ 添加账号</button>
+                    </div>
                 </div>
             `;
 
-            container.appendChild(accountCard);
+            container.appendChild(siteCard);
+            addAccountToSite(siteCount);
         }
 
-        function removeAccount(id) {
-            const account = document.getElementById(`account-${id}`);
-            if (account) {
-                account.style.transition = 'all 0.3s ease';
-                account.style.opacity = '0';
-                account.style.transform = 'translateY(-10px)';
-                setTimeout(() => account.remove(), 300);
+        function addAccountToSite(siteId) {
+            siteAccountCounts[siteId]++;
+            const accIdx = siteAccountCounts[siteId];
+            const accountsContainer = document.getElementById(`site-accounts-${siteId}`);
+
+            const accItem = document.createElement('div');
+            accItem.className = 'account-item';
+            accItem.id = `acc-${siteId}-${accIdx}`;
+            accItem.innerHTML = `
+                <div class="account-item-header">
+                    <span class="account-item-title">账号 ${accIdx}</span>
+                    ${accIdx > 1 ? `<button class="btn btn-danger btn-xs" onclick="removeAccountFromSite(${siteId}, ${accIdx})">删除</button>` : ''}
+                </div>
+                <div class="account-fields">
+                    <div class="form-group">
+                        <label>Session <span class="required">*</span></label>
+                        <input type="text" id="acc-session-${siteId}-${accIdx}" placeholder="MTc2NzQxMzYzM3...">
+                    </div>
+                    <div class="form-group">
+                        <label>用户ID <span class="required">*</span></label>
+                        <input type="text" id="acc-userid-${siteId}-${accIdx}" placeholder="123">
+                    </div>
+                    <div class="form-group">
+                        <label>备注名称</label>
+                        <input type="text" id="acc-name-${siteId}-${accIdx}" placeholder="主力站 / 备用站">
+                    </div>
+                </div>
+            `;
+
+            accountsContainer.appendChild(accItem);
+        }
+
+        function removeAccountFromSite(siteId, accIdx) {
+            const el = document.getElementById(`acc-${siteId}-${accIdx}`);
+            if (el) {
+                el.style.transition = 'all 0.3s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => el.remove(), 300);
+            }
+        }
+
+        function removeSite(siteId) {
+            const el = document.getElementById(`site-${siteId}`);
+            if (el) {
+                el.style.transition = 'all 0.3s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => el.remove(), 300);
             }
         }
 
@@ -717,46 +852,64 @@
 
         function generateConfig() {
             const accounts = [];
-            const accountCards = document.querySelectorAll('.account-card');
-
+            const siteCards = document.querySelectorAll('.site-card');
             let hasError = false;
-            accountCards.forEach(card => {
-                const id = card.id.split('-')[1];
-                const url = document.getElementById(`url-${id}`).value.trim();
-                const session = document.getElementById(`session-${id}`).value.trim();
-                const userId = document.getElementById(`userid-${id}`).value.trim();
-                const cfClearance = document.getElementById(`cfclearance-${id}`).value.trim();
-                const name = document.getElementById(`name-${id}`).value.trim();
 
-                if (!url || !session || !userId) {
-                    alert(`账号 ${id}: URL、Session 和 用户ID 不能为空`);
+            siteCards.forEach(card => {
+                if (hasError) return;
+                const siteId = card.id.split('-')[1];
+                const url = document.getElementById(`site-url-${siteId}`).value.trim();
+                const cfClearance = document.getElementById(`site-cfclearance-${siteId}`).value.trim();
+
+                if (!url) {
+                    alert(`站点 ${siteId}: URL 不能为空`);
                     hasError = true;
                     return;
                 }
 
-                const account = {
-                    url: url.startsWith('http') ? url : 'https://' + url,
-                    session: session,
-                    user_id: userId,
-                    name: name || `站点${id}`
-                };
+                const fullUrl = url.startsWith('http') ? url : 'https://' + url;
 
-                if (cfClearance) {
-                    account.cf_clearance = cfClearance;
+                const accItems = card.querySelectorAll('.account-item');
+                if (accItems.length === 0) {
+                    alert(`站点 ${siteId}: 至少需要添加一个账号`);
+                    hasError = true;
+                    return;
                 }
 
-                accounts.push(account);
+                accItems.forEach(item => {
+                    if (hasError) return;
+                    const parts = item.id.split('-');
+                    const sId = parts[1];
+                    const aId = parts[2];
+                    const session = document.getElementById(`acc-session-${sId}-${aId}`).value.trim();
+                    const userId = document.getElementById(`acc-userid-${sId}-${aId}`).value.trim();
+                    const name = document.getElementById(`acc-name-${sId}-${aId}`).value.trim();
+
+                    if (!session || !userId) {
+                        alert(`站点 ${siteId} 账号 ${aId}: Session 和 用户ID 不能为空`);
+                        hasError = true;
+                        return;
+                    }
+
+                    const account = {
+                        url: fullUrl,
+                        session: session,
+                        user_id: userId,
+                        name: name || `站点${siteId}-账号${aId}`
+                    };
+
+                    if (cfClearance) {
+                        account.cf_clearance = cfClearance;
+                    }
+
+                    accounts.push(account);
+                });
             });
 
-            if (hasError || accounts.length === 0) {
-                return;
-            }
+            if (hasError || accounts.length === 0) return;
 
-            const jsonConfig = JSON.stringify(accounts, null, 2);
-            document.getElementById('json-output').textContent = jsonConfig;
-
-            const simpleConfig = accounts.map(acc => `${acc.url}#${acc.session}`).join(',');
-            document.getElementById('simple-output').textContent = simpleConfig;
+            document.getElementById('json-output').textContent = JSON.stringify(accounts, null, 2);
+            document.getElementById('simple-output').textContent = accounts.map(acc => `${acc.url}#${acc.session}`).join(',');
 
             document.getElementById('result').style.display = 'block';
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
@@ -776,16 +929,13 @@
                     btn.style.background = 'rgba(5, 150, 105, 0.3)';
                     btn.style.borderColor = 'rgba(52, 211, 153, 0.5)';
                     btn.style.color = '#34d399';
-
                     setTimeout(() => {
                         btn.textContent = originalText;
                         btn.style.background = '';
                         btn.style.borderColor = '';
                         btn.style.color = '';
                     }, 2000);
-                }).catch(err => {
-                    fallbackCopy(text, btn, originalText);
-                });
+                }).catch(() => fallbackCopy(text, btn, originalText));
             } else {
                 fallbackCopy(text, btn, originalText);
             }
@@ -802,7 +952,6 @@
             try {
                 textarea.select();
                 textarea.setSelectionRange(0, 99999);
-
                 const successful = document.execCommand('copy');
                 document.body.removeChild(textarea);
 
@@ -810,122 +959,130 @@
                     btn.textContent = '✅ 已复制！';
                     btn.style.background = 'rgba(5, 150, 105, 0.3)';
                     btn.style.color = '#34d399';
-
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                        btn.style.background = '';
-                        btn.style.color = '';
-                    }, 2000);
+                    setTimeout(() => { btn.textContent = originalText; btn.style.background = ''; btn.style.color = ''; }, 2000);
                 } else {
                     throw new Error('execCommand failed');
                 }
             } catch (err) {
                 document.body.removeChild(textarea);
-                const outputElement = document.getElementById(
-                    btn.closest('.tab-content').querySelector('pre').id
-                );
+                const outputElement = document.getElementById(btn.closest('.tab-content').querySelector('pre').id);
                 const selection = window.getSelection();
                 const range = document.createRange();
                 range.selectNodeContents(outputElement);
                 selection.removeAllRanges();
                 selection.addRange(range);
-
                 btn.textContent = '⚠️ 请手动复制';
                 btn.style.background = 'rgba(245, 158, 11, 0.3)';
                 btn.style.color = '#fbbf24';
-                alert('自动复制失败，已为您选中文本，请按 Ctrl+C (Mac: Cmd+C) 手动复制');
-
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '';
-                    btn.style.color = '';
-                }, 3000);
+                alert('自动复制失败，已为您选中文本，请按 Ctrl+C 手动复制');
+                setTimeout(() => { btn.textContent = originalText; btn.style.background = ''; btn.style.color = ''; }, 3000);
             }
         }
 
         const STORAGE_KEY = 'newapi_checkin_accounts';
 
-        window.addEventListener('load', function() {
-            checkLocalStorage();
-        });
+        window.addEventListener('load', checkLocalStorage);
 
         function checkLocalStorage() {
             const savedData = localStorage.getItem(STORAGE_KEY);
             if (savedData) {
                 const notice = document.createElement('div');
                 notice.className = 'notice';
-                notice.innerHTML = `
-                    <span>💡</span>
-                    <span>发现本地保存的配置，点击"从本地加载"按钮可恢复。</span>
-                `;
-                const container = document.querySelector('.content');
-                container.insertBefore(notice, container.firstChild);
+                notice.innerHTML = `<span>💡</span><span>发现本地保存的配置，点击"从本地加载"按钮可恢复。</span>`;
+                document.querySelector('.content').insertBefore(notice, document.querySelector('.content').firstChild);
             }
         }
 
-        function saveToLocal() {
-            const accounts = [];
-            const accountCards = document.querySelectorAll('.account-card');
+        function collectFormData() {
+            const sites = [];
+            document.querySelectorAll('.site-card').forEach(card => {
+                const siteId = card.id.split('-')[1];
+                const url = document.getElementById(`site-url-${siteId}`).value.trim();
+                const cfClearance = document.getElementById(`site-cfclearance-${siteId}`).value.trim();
 
-            accountCards.forEach(card => {
-                const id = card.id.split('-')[1];
-                const url = document.getElementById(`url-${id}`).value.trim();
-                const session = document.getElementById(`session-${id}`).value.trim();
-                const userId = document.getElementById(`userid-${id}`).value.trim();
-                const cfClearance = document.getElementById(`cfclearance-${id}`).value.trim();
-                const name = document.getElementById(`name-${id}`).value.trim();
+                const accs = [];
+                card.querySelectorAll('.account-item').forEach(item => {
+                    const parts = item.id.split('-');
+                    const sId = parts[1];
+                    const aId = parts[2];
+                    accs.push({
+                        session: document.getElementById(`acc-session-${sId}-${aId}`).value.trim(),
+                        userId: document.getElementById(`acc-userid-${sId}-${aId}`).value.trim(),
+                        name: document.getElementById(`acc-name-${sId}-${aId}`).value.trim()
+                    });
+                });
 
-                if (url || session || userId || cfClearance || name) {
-                    accounts.push({ url, session, userId, cfClearance, name });
+                if (url || cfClearance || accs.some(a => a.session || a.userId || a.name)) {
+                    sites.push({ url, cfClearance, accounts: accs });
                 }
             });
+            return sites;
+        }
 
-            if (accounts.length === 0) {
-                alert('⚠️ 没有可保存的配置');
-                return;
-            }
+        function saveToLocal() {
+            const sites = collectFormData();
+            if (sites.length === 0) { alert('⚠️ 没有可保存的配置'); return; }
 
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-                alert(`✅ 成功保存 ${accounts.length} 个账号配置到本地！\n\n⚠️ 提示：Session Cookie 以明文形式存储，请注意安全。`);
-            } catch (e) {
-                alert('❌ 保存失败：' + e.message);
-            }
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+                alert(`✅ 成功保存 ${sites.length} 个站点配置到本地！\n\n⚠️ 提示：Session Cookie 以明文形式存储，请注意安全。`);
+            } catch (e) { alert('❌ 保存失败：' + e.message); }
         }
 
         function loadFromLocal() {
             const savedData = localStorage.getItem(STORAGE_KEY);
-
-            if (!savedData) {
-                alert('⚠️ 没有找到本地保存的配置');
-                return;
-            }
+            if (!savedData) { alert('⚠️ 没有找到本地保存的配置'); return; }
 
             try {
-                const accounts = JSON.parse(savedData);
-
-                if (!Array.isArray(accounts) || accounts.length === 0) {
+                const data = JSON.parse(savedData);
+                if (Array.isArray(data) && data.length > 0 && data[0].accounts) {
+                    loadGroupedData(data);
+                } else if (Array.isArray(data) && data.length > 0) {
+                    loadFlatData(data);
+                } else {
                     alert('⚠️ 本地配置格式错误');
                     return;
                 }
+                alert(`✅ 成功加载 ${document.querySelectorAll('.account-item').length} 个账号配置！`);
+            } catch (e) { alert('❌ 加载失败：' + e.message); }
+        }
 
-                document.getElementById('accounts-container').innerHTML = '';
-                accountCount = 0;
+        function loadGroupedData(sites) {
+            document.getElementById('sites-container').innerHTML = '';
+            siteCount = 0;
 
-                accounts.forEach((account, index) => {
-                    addAccount();
-                    const id = accountCount;
-                    document.getElementById(`url-${id}`).value = account.url || '';
-                    document.getElementById(`session-${id}`).value = account.session || '';
-                    document.getElementById(`userid-${id}`).value = account.userId || '';
-                    document.getElementById(`cfclearance-${id}`).value = account.cfClearance || '';
-                    document.getElementById(`name-${id}`).value = account.name || '';
+            sites.forEach(site => {
+                addSite();
+                const sid = siteCount;
+                document.getElementById(`site-url-${sid}`).value = site.url || '';
+                document.getElementById(`site-cfclearance-${sid}`).value = site.cfClearance || '';
+
+                if (site.accounts && site.accounts.length > 0) {
+                    site.accounts.forEach((acc, i) => {
+                        if (i > 0) addAccountToSite(sid);
+                        const aid = siteAccountCounts[sid];
+                        document.getElementById(`acc-session-${sid}-${aid}`).value = acc.session || '';
+                        document.getElementById(`acc-userid-${sid}-${aid}`).value = acc.userId || '';
+                        document.getElementById(`acc-name-${sid}-${aid}`).value = acc.name || '';
+                    });
+                }
+            });
+        }
+
+        function loadFlatData(flatAccounts) {
+            const grouped = {};
+            flatAccounts.forEach(acc => {
+                const key = (acc.url || '') + '|' + (acc.cfClearance || acc.cf_clearance || '');
+                if (!grouped[key]) {
+                    grouped[key] = { url: acc.url || '', cfClearance: acc.cfClearance || acc.cf_clearance || '', accounts: [] };
+                }
+                grouped[key].accounts.push({
+                    session: acc.session || '',
+                    userId: acc.userId || acc.user_id || '',
+                    name: acc.name || ''
                 });
-
-                alert(`✅ 成功加载 ${accounts.length} 个账号配置！`);
-            } catch (e) {
-                alert('❌ 加载失败：' + e.message);
-            }
+            });
+            loadGroupedData(Object.values(grouped));
         }
 
         function toggleImport() {
@@ -941,42 +1098,25 @@
 
         function importJSON() {
             const raw = document.getElementById('import-json').value.trim();
-            if (!raw) {
-                alert('⚠️ 请先粘贴 JSON 配置');
-                return;
-            }
+            if (!raw) { alert('⚠️ 请先粘贴 JSON 配置'); return; }
 
             try {
                 const accounts = JSON.parse(raw);
-
                 if (!Array.isArray(accounts) || accounts.length === 0) {
                     alert('⚠️ JSON 格式错误：应为账号数组（[]）');
                     return;
                 }
 
                 for (let i = 0; i < accounts.length; i++) {
-                    const acc = accounts[i];
-                    if (!acc.url || !acc.session) {
+                    if (!accounts[i].url || !accounts[i].session) {
                         alert(`⚠️ 第 ${i + 1} 个账号缺少 url 或 session 字段`);
                         return;
                     }
                 }
 
-                document.getElementById('accounts-container').innerHTML = '';
-                accountCount = 0;
-
-                accounts.forEach((acc) => {
-                    addAccount();
-                    const id = accountCount;
-                    document.getElementById(`url-${id}`).value = acc.url || '';
-                    document.getElementById(`session-${id}`).value = acc.session || '';
-                    document.getElementById(`userid-${id}`).value = acc.user_id || acc.userId || '';
-                    document.getElementById(`cfclearance-${id}`).value = acc.cf_clearance || acc.cfClearance || '';
-                    document.getElementById(`name-${id}`).value = acc.name || '';
-                });
-
+                loadFlatData(accounts);
                 toggleImport();
-                alert(`✅ 成功导入 ${accounts.length} 个账号配置！`);
+                alert(`✅ 成功导入 ${document.querySelectorAll('.account-item').length} 个账号配置！已按站点自动分组。`);
             } catch (e) {
                 alert('❌ JSON 解析失败：' + e.message + '\n\n请检查格式是否正确');
             }
@@ -984,20 +1124,14 @@
 
         function clearLocal() {
             const savedData = localStorage.getItem(STORAGE_KEY);
-
-            if (!savedData) {
-                alert('⚠️ 没有本地保存的配置');
-                return;
-            }
+            if (!savedData) { alert('⚠️ 没有本地保存的配置'); return; }
 
             if (confirm('⚠️ 确定要清除本地保存的配置吗？\n\n此操作不可恢复！')) {
                 try {
                     localStorage.removeItem(STORAGE_KEY);
                     alert('✅ 已清除本地配置');
                     location.reload();
-                } catch (e) {
-                    alert('❌ 清除失败：' + e.message);
-                }
+                } catch (e) { alert('❌ 清除失败：' + e.message); }
             }
         }
     </script>
