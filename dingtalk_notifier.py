@@ -203,9 +203,14 @@ def build_checkin_report(results: List[Dict[str, Any]], execution_time: str) -> 
         for r in success_list:
             name = r.get('name', '未知账号')
             quota = r.get('quota_awarded', 0)
-            quota_str = f'+{format_quota(quota)}' if quota else '-'
+            already_checked = r.get('already_checked', False)
+            quota_str = f'+{format_quota(quota)}' if quota and not already_checked else '-'
             checkin_count = r.get('checkin_count')
-            detail = f'已签 {checkin_count} 天' if checkin_count else r.get('message', '成功')
+            message = r.get('message', '成功')
+            if checkin_count:
+                detail = f'{message}；已签 {checkin_count} 天'
+            else:
+                detail = message
             lines.append(f'| {name} | {quota_str} | {detail} |')
         lines.append('')
     
@@ -282,7 +287,7 @@ def send_checkin_notification(results: List[Dict[str, Any]], execution_time: Opt
     fail_count = len([r for r in results if not r.get('success')])
     
     if fail_count == 0:
-        title = f'✅ 签到成功 ({success_count}个账号)'
+        title = f'✅ 签到完成 ({success_count}个账号)'
     elif success_count == 0:
         title = f'❌ 签到失败 ({fail_count}个账号)'
     else:

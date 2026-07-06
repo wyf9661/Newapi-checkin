@@ -208,7 +208,8 @@ class NewAPICheckin:
             'success': False,
             'message': '',
             'checkin_date': None,
-            'quota_awarded': None
+            'quota_awarded': None,
+            'already_checked': False
         }
 
         try:
@@ -240,12 +241,20 @@ class NewAPICheckin:
                 if data.get('success'):
                     result['success'] = True
                     result['message'] = data.get('message', '签到成功')
+                    result['already_checked'] = False
 
                     checkin_data = data.get('data', {})
                     result['checkin_date'] = checkin_data.get('checkin_date')
                     result['quota_awarded'] = checkin_data.get('quota_awarded')
                 else:
-                    result['message'] = data.get('message', '签到失败')
+                    message = data.get('message', '签到失败')
+                    already_keywords = ['已签到', '已经签到', '今日已签', 'already', '重复签到']
+                    if any(keyword in str(message) for keyword in already_keywords):
+                        result['success'] = True
+                        result['message'] = message
+                        result['already_checked'] = True
+                    else:
+                        result['message'] = message
             else:
                 result['message'] = f'HTTP {resp.status_code}: {data.get("message", "未知错误")}'
 
@@ -269,7 +278,8 @@ class NewAPICheckin:
             'success': False,
             'message': '',
             'checkin_date': None,
-            'quota_awarded': None
+            'quota_awarded': None,
+            'already_checked': False
         }
 
         if not CF_BYPASS_AVAILABLE or not CloudflareBypasser:
@@ -298,9 +308,11 @@ class NewAPICheckin:
         if browser_result.get('alreadyCheckedIn'):
             result['success'] = True
             result['message'] = browser_result.get('message', '今日已签到 (CF绕过)')
+            result['already_checked'] = True
         elif browser_result.get('success'):
             result['success'] = True
             result['message'] = browser_result.get('message', '签到成功 (CF绕过)')
+            result['already_checked'] = False
             data = browser_result.get('data', {})
             if isinstance(data, dict):
                 checkin_data = data.get('data', data)
@@ -337,6 +349,208 @@ class NewAPICheckin:
             return None
 
 
+
+class Sub2APICheckin:
+    """Sub2API 签到类（自动探测不同站点的签到 API 实现）"""
+
+    def __init__(self, base_url: str, auth_token: str, refresh_token: str = None, checkin_api: str = 'auto'):
+        self.base_url = base_url.rstrip('/')
+        self.auth_token = auth_token
+        self.refresh_token = refresh_token
+        self.checkin_api = checkin_api or 'auto'
+        self.session = requests.Session()
+        self.device_fingerprint = self._device_fingerprint(auth_token)
+        self.session.headers.update({
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Authorization': f'Bearer {auth_token}',
+        })
+
+    @staticmethod
+    def _device_fingerprint(seed: str) -> str:
+        import hashlib
+        return hashlib.sha256((seed or 'sub2api-checkin').encode('utf-8')).hexdigest()
+
+    def _request(self, method: str, path: str, *, json_body=None, extra_headers=None, retry_auth=True):
+        import uuid
+        headers = {
+            'X-Request-Id': str(uuid.uuid4()),
+        }
+        if method.upper() != 'GET':
+            headers.update({
+                'Idempotency-Key': str(uuid.uuid4()),
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Device-Fingerprint': self.device_fingerprint,
+                'Origin': self.base_url,
+                'Referer': f'{self.base_url}/extensions/checkin/index.html',
+            })
+        if extra_headers:
+            headers.update(extra_headers)
+
+        resp = self.session.request(method, f'{self.base_url}{path}', headers=headers, json=json_body, timeout=30)
+        if resp.status_code == 401 and retry_auth and self.refresh_token and self._refresh_token():
+            return self._request(method, path, json_body=json_body, extra_headers=extra_headers, retry_auth=False)
+        return resp
+
+    def _refresh_token(self) -> bool:
+        try:
+            resp = self.session.post(
+                f'{self.base_url}/api/v1/auth/refresh',
+                json={'refresh_token': self.refresh_token},
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                return False
+            data = resp.json()
+            payload = data.get('data') if data.get('code') == 0 else data
+            if not isinstance(payload, dict) or not payload.get('access_token'):
+                return False
+            self.auth_token = payload['access_token']
+            self.session.headers.update({'Authorization': f'Bearer {self.auth_token}'})
+            if payload.get('refresh_token'):
+                self.refresh_token = payload['refresh_token']
+            print('  [Sub2API] access token 已刷新')
+            return True
+        except Exception:
+            return False
+
+    def _parse_json(self, resp):
+        try:
+            return resp.json()
+        except json.JSONDecodeError:
+            return None
+
+    def _unwrap(self, data):
+        if isinstance(data, dict) and data.get('code') == 0 and 'data' in data:
+            return data.get('data')
+        return data
+
+    def detect_checkin_api(self):
+        """返回 (api_name, status_data)；api_name: v1 或 extension"""
+        candidates = []
+        if self.checkin_api in ('auto', 'v1'):
+            candidates.append(('v1', '/api/v1/check-in/status'))
+        if self.checkin_api in ('auto', 'extension'):
+            candidates.append(('extension', '/api/checkin-sidebar/status'))
+
+        last_error = ''
+        for api_name, path in candidates:
+            resp = self._request('GET', path)
+            data = self._parse_json(resp)
+            if resp.status_code == 200 and data is not None:
+                payload = self._unwrap(data)
+                return api_name, payload
+            if resp.status_code not in (404, 405):
+                last_error = f'{api_name}: HTTP {resp.status_code} {resp.text[:120]}'
+        return None, {'error': last_error or '未发现支持的 Sub2API 签到接口'}
+
+    def get_user_info(self):
+        try:
+            resp = self._request('GET', '/api/v1/auth/me')
+            data = self._parse_json(resp)
+            if resp.status_code == 200 and data is not None:
+                return self._unwrap(data)
+            return None
+        except Exception:
+            return None
+
+    def checkin(self) -> dict:
+        result = {
+            'success': False,
+            'message': '',
+            'checkin_date': None,
+            'quota_awarded': None,
+            'checkin_count': 0,
+            'total_quota': 0,
+            'already_checked': False,
+        }
+
+        api_name, status = self.detect_checkin_api()
+        if not api_name:
+            result['message'] = status.get('error', '未发现支持的 Sub2API 签到接口') if isinstance(status, dict) else '未发现支持的 Sub2API 签到接口'
+            return result
+
+        status_checkin = status.get('checkin', status) if isinstance(status, dict) else {}
+        checked_today = bool(status_checkin.get('checked_in_today') or status_checkin.get('checkedToday') or status_checkin.get('already_checked_in'))
+
+        if checked_today:
+            result.update(self._success_from_status(api_name, status_checkin, already=True))
+            return result
+
+        if api_name == 'v1':
+            resp = self._request('POST', '/api/v1/check-in', json_body={'turnstile_token': None})
+        else:
+            resp = self._request('POST', '/api/checkin-sidebar/checkin', json_body={})
+
+        data = self._parse_json(resp)
+        if resp.status_code != 200 or data is None:
+            result['message'] = f'HTTP {resp.status_code}: {resp.text[:200]}'
+            return result
+
+        payload = self._unwrap(data)
+        if isinstance(payload, dict) and payload.get('checkin'):
+            status_checkin = payload['checkin']
+        elif isinstance(payload, dict):
+            status_checkin = payload
+        else:
+            result['message'] = '签到响应格式错误'
+            return result
+
+        result.update(self._success_from_status(api_name, status_checkin, already=bool(status_checkin.get('already_checked_in'))))
+        return result
+
+    def _success_from_status(self, api_name: str, data: dict, already: bool = False) -> dict:
+        reward = data.get('quota_awarded')
+        if reward is None:
+            reward = data.get('reward_amount')
+        if reward is None:
+            reward = data.get('reward')
+        if reward is None:
+            reward = data.get('today_reward')
+
+        checkin_date = data.get('checkin_date') or data.get('check_in_date')
+        if not checkin_date and data.get('lastCheckedAt'):
+            checkin_date = str(data.get('lastCheckedAt'))[:10]
+
+        checkin_count = data.get('monthCount') or data.get('total_check_in_days') or data.get('totalCount') or 0
+        total_quota = data.get('totalReward') or data.get('total_reward') or 0
+        if isinstance(data.get('calendar'), dict):
+            summary = data['calendar'].get('summary', {})
+            checkin_count = summary.get('checkedDays', checkin_count)
+            total_quota = summary.get('totalReward', total_quota)
+
+        message = data.get('message')
+        if not message:
+            message = '今日已签到' if already else '签到成功'
+
+        return {
+            'success': True,
+            'message': message,
+            'checkin_date': checkin_date,
+            'quota_awarded': None if already else reward,
+            'checkin_count': checkin_count,
+            'total_quota': total_quota,
+            'already_checked': already,
+        }
+
+    def get_checkin_history(self):
+        api_name, status = self.detect_checkin_api()
+        if not api_name or not isinstance(status, dict):
+            return None
+        checkin = status.get('checkin', status)
+        stats = {
+            'checkin_count': checkin.get('monthCount') or checkin.get('total_check_in_days') or checkin.get('totalCount') or 0,
+            'total_quota': checkin.get('totalReward') or checkin.get('total_reward') or 0,
+            'checked_in_today': bool(checkin.get('checked_in_today') or checkin.get('checkedToday')),
+        }
+        if isinstance(checkin.get('calendar'), dict):
+            summary = checkin['calendar'].get('summary', {})
+            stats['checkin_count'] = summary.get('checkedDays', stats['checkin_count'])
+            stats['total_quota'] = summary.get('totalReward', stats['total_quota'])
+        return {'stats': stats}
+
 def parse_accounts(accounts_str: str) -> list:
     """
     解析账号配置
@@ -356,8 +570,25 @@ def parse_accounts(accounts_str: str) -> list:
         data = json.loads(accounts_str)
         if isinstance(data, list):
             for item in data:
-                if isinstance(item, dict) and 'url' in item and 'session' in item:
+                if not isinstance(item, dict) or 'url' not in item:
+                    continue
+
+                account_type = item.get('type', 'newapi')
+                if account_type == 'sub2api' and 'auth_token' in item:
                     account = {
+                        'type': 'sub2api',
+                        'url': item['url'],
+                        'auth_token': item['auth_token'],
+                        'refresh_token': item.get('refresh_token', ''),
+                        'checkin_api': item.get('checkin_api', 'auto'),
+                        'name': item.get('name', '')
+                    }
+                    accounts.append(account)
+                    continue
+
+                if 'session' in item:
+                    account = {
+                        'type': account_type,
                         'url': item['url'],
                         'session': item['session'],
                         'name': item.get('name', '')
@@ -379,6 +610,7 @@ def parse_accounts(accounts_str: str) -> list:
         if '#' in part:
             url, session = part.split('#', 1)
             accounts.append({
+                'type': 'newapi',
                 'url': url.strip(),
                 'session': session.strip(),
                 'name': ''
@@ -507,9 +739,8 @@ def main():
 
     for i, account in enumerate(accounts, 1):
         url = account['url']
-        session_cookie = account['session']
+        account_type = account.get('type', 'newapi')
         user_id = account.get('user_id')  # 获取用户ID（如果提供）
-        cf_clearance = account.get('cf_clearance')  # 获取 CF clearance（如果提供）
         name = account.get('name') or f'账号{i}'
 
         print(f'[{i}/{len(accounts)}] {name}')
@@ -517,7 +748,17 @@ def main():
         if user_id:
             print(f'  用户ID: {NewAPICheckin._mask_user_id(user_id)}')
 
-        client = NewAPICheckin(url, session_cookie, user_id, cf_clearance)
+        if account_type == 'sub2api':
+            client = Sub2APICheckin(
+                url,
+                account['auth_token'],
+                account.get('refresh_token'),
+                account.get('checkin_api', 'auto')
+            )
+        else:
+            session_cookie = account['session']
+            cf_clearance = account.get('cf_clearance')  # 获取 CF clearance（如果提供）
+            client = NewAPICheckin(url, session_cookie, user_id, cf_clearance)
 
         # 获取用户信息
         user_info = client.get_user_info()
@@ -557,8 +798,8 @@ def main():
             history = client.get_checkin_history()
             if history and history.get('stats'):
                 stats = history['stats']
-                checkin_count = stats.get('checkin_count', 0)
-                total_quota = stats.get('total_quota', 0)
+                checkin_count = result.get('checkin_count') or stats.get('checkin_count', 0)
+                total_quota = result.get('total_quota') or stats.get('total_quota', 0)
                 if total_quota >= 1000000:
                     total_str = f'{total_quota / 1000000:.2f}M'
                 elif total_quota >= 1000:
@@ -573,6 +814,7 @@ def main():
                 'success': True,
                 'message': result['message'],
                 'quota_awarded': result.get('quota_awarded'),
+                'already_checked': result.get('already_checked', False),
                 'checkin_count': checkin_count
             }
             checkin_results.append(account_result)

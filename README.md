@@ -5,7 +5,7 @@
 ## ✨ 功能特性
 
 - ✅ 支持单账号/多账号签到
-- ✅ **支持多个不同网站**（只要是基于 NewAPI 搭建的站点）
+- ✅ **支持多个不同网站**（NewAPI 站点 + Sub2API 站点）
 - ✅ HTTP 直连，无需浏览器
 - ✅ GitHub Actions 自动化执行
 - ✅ 详细的签到日志输出
@@ -13,6 +13,7 @@
 - ✅ 支持手动触发和定时任务
 - ✅ **钉钉通知**（签到完成后自动推送结果）
 - ✅ **工作流保活**（防止 GitHub Actions 自动禁用）
+- ✅ **Sub2API 签到**（自动探测 `/api/v1/check-in` 和 `/api/checkin-sidebar` 两种接口）
 
 ## 🛠️ 配置工具（推荐）
 
@@ -170,6 +171,32 @@ https://api.example1.com#MTc2NzQx...,https://api.example2.com#QVFMXzJh...,https:
 ]
 ```
 
+**Sub2API 格式（自动探测签到接口）：**
+```json
+[
+  {
+    "type": "sub2api",
+    "url": "https://k40.shengqainbang.cn",
+    "auth_token": "浏览器 localStorage 里的 auth_token",
+    "refresh_token": "浏览器 localStorage 里的 refresh_token",
+    "name": "Sub2API 站点"
+  },
+  {
+    "type": "sub2api",
+    "url": "https://cngov.cc.cd",
+    "auth_token": "浏览器 localStorage 里的 auth_token",
+    "refresh_token": "浏览器 localStorage 里的 refresh_token",
+    "name": "自定义签到中心"
+  }
+]
+```
+
+说明：Sub2API 的签到通常在侧边栏/自定义页面中展示，但不同站点后端接口可能不同。脚本会自动按顺序探测：
+1. `/api/v1/check-in/status` + `/api/v1/check-in`
+2. `/api/checkin-sidebar/status` + `/api/checkin-sidebar/checkin`
+
+如需固定接口，可增加 `"checkin_api": "v1"` 或 `"checkin_api": "extension"`；默认 `auto`。
+
 #### 3. 启用 GitHub Actions
 
 进入仓库的 `Actions` 页面，点击 `I understand my workflows, go ahead and enable them` 启用工作流。
@@ -220,6 +247,11 @@ set NEWAPI_ACCOUNTS=https://your-domain.com#your_session_cookie
 
 ```bash
 python checkin.py
+```
+
+**测试 Sub2API 单站点：**
+```bash
+python test_sub2api.py https://example.com "AUTH_TOKEN" "REFRESH_TOKEN"
 ```
 
 #### 5. 测试单个站点（可选）
