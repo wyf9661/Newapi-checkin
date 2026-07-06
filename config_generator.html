@@ -333,7 +333,8 @@
             font-size: 12px;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -343,6 +344,23 @@
             background: rgba(255, 255, 255, 0.06);
             color: rgba(255, 255, 255, 0.9);
             outline: none;
+        }
+
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            padding-right: 42px;
+            background-image: linear-gradient(45deg, transparent 50%, #a78bfa 50%),
+                              linear-gradient(135deg, #a78bfa 50%, transparent 50%);
+            background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+        }
+
+        .form-group select option {
+            background: #1a1a2e;
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .url-input-wrapper {
@@ -388,9 +406,10 @@
             color: rgba(255, 255, 255, 0.3);
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: #6366f1;
-            background: rgba(99, 102, 241, 0.08);
+            background-color: rgba(99, 102, 241, 0.08);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
@@ -440,10 +459,21 @@
             display: grid;
             grid-template-columns: 2fr 1fr 1fr;
             gap: 12px;
+            align-items: start;
         }
 
         .account-fields .form-group {
             margin-bottom: 0;
+            min-width: 0;
+        }
+
+        .account-fields .form-group label {
+            min-height: 20px;
+            white-space: nowrap;
+        }
+
+        .account-item.sub2api-mode .account-fields {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 180px;
         }
 
         .btn {
@@ -1291,13 +1321,6 @@
     "user_id": "123",
     "name": "主力站",
     "cf_clearance": "xxsCgaPMM..."
-  },
-  {
-    "type": "sub2api",
-    "url": "https://sub2api.example.com",
-    "auth_token": "eyJ...",
-    "refresh_token": "rt_xxx",
-    "name": "Sub2API"
   }
 ]'></textarea>
                 <div class="btn-group" style="margin-top: 12px;">
@@ -1310,7 +1333,7 @@
                 <h4>💡 使用提示：</h4>
                 <ul>
                     <li><strong>站点分组：</strong>同一站点的 URL 和 CF Clearance 只需填写一次，站点下可添加多个账号</li>
-                    <li><strong>账号信息：</strong>NewAPI 填写 Session、用户ID；Sub2API 填写 auth_token、refresh_token</li>
+                    <li><strong>账号信息：</strong>每个账号只需填写 Session、用户ID 和备注名称</li>
                     <li><strong>保存到本地：</strong>将配置保存到浏览器本地存储，下次访问自动加载</li>
                     <li><strong>明文存储：</strong>数据以明文形式存储在浏览器中，请注意安全</li>
                 </ul>
@@ -1385,7 +1408,7 @@
                                 <option value="newapi">NewAPI</option>
                                 <option value="sub2api">Sub2API</option>
                             </select>
-                            <small>Sub2API 使用浏览器 localStorage 里的 auth_token / refresh_token</small>
+                            <small>Sub2API 使用 auth_token / refresh_token，仅支持 JSON 格式</small>
                         </div>
                         <div class="form-group">
                             <label>站点 URL <span class="required">*</span></label>
@@ -1395,20 +1418,12 @@
                             </div>
                             <small>完整的站点地址，同站点下所有账号共享此 URL</small>
                         </div>
-                        <div class="form-group newapi-field" data-site-field="newapi">
+                        <div class="form-group" data-site-field="newapi">
                             <label>CF Clearance（可选）</label>
                             <input type="text" id="site-cfclearance-${siteCount}" placeholder="xxsCgaPMM...">
                             <small>站点级 Cloudflare 防护 Cookie，同站点共享</small>
                         </div>
-                        <div class="form-group sub2api-field" data-site-field="sub2api" style="display:none;">
-                            <label>签到接口</label>
-                            <select id="site-checkin-api-${siteCount}">
-                                <option value="auto">自动探测</option>
-                                <option value="v1">/api/v1/check-in</option>
-                                <option value="extension">/api/checkin-sidebar</option>
-                            </select>
-                            <small>默认自动探测；只有排错时才需要手动指定</small>
-                        </div>
+                        <input type="hidden" id="site-checkin-api-${siteCount}" value="auto">
                     </div>
 
                     <hr class="accounts-divider">
@@ -1440,20 +1455,20 @@
                     ${accIdx > 1 ? `<button class="btn btn-danger btn-xs" onclick="removeAccountFromSite(${siteId}, ${accIdx})">删除</button>` : ''}
                 </div>
                 <div class="account-fields">
-                    <div class="form-group newapi-field" data-account-field="newapi">
+                    <div class="form-group" data-account-field="newapi">
                         <label>Session <span class="required">*</span></label>
                         <input type="text" id="acc-session-${siteId}-${accIdx}" placeholder="MTc2NzQxMzYzM3...">
                     </div>
-                    <div class="form-group newapi-field" data-account-field="newapi">
+                    <div class="form-group" data-account-field="newapi">
                         <label>用户ID <span class="required">*</span></label>
                         <input type="text" id="acc-userid-${siteId}-${accIdx}" placeholder="123">
                     </div>
-                    <div class="form-group sub2api-field" data-account-field="sub2api" style="display:none;">
+                    <div class="form-group" data-account-field="sub2api" style="display:none;">
                         <label>Auth Token <span class="required">*</span></label>
-                        <input type="text" id="acc-auth-token-${siteId}-${accIdx}" placeholder="eyJhbGciOiJIUzI1NiIs...">
+                        <input type="text" id="acc-auth-token-${siteId}-${accIdx}" placeholder="eyJhbG...">
                     </div>
-                    <div class="form-group sub2api-field" data-account-field="sub2api" style="display:none;">
-                        <label>Refresh Token（建议填写）</label>
+                    <div class="form-group" data-account-field="sub2api" style="display:none;">
+                        <label>Refresh Token</label>
                         <input type="text" id="acc-refresh-token-${siteId}-${accIdx}" placeholder="rt_xxx">
                     </div>
                     <div class="form-group">
@@ -1474,8 +1489,11 @@
             card.querySelectorAll('[data-site-field="newapi"], [data-account-field="newapi"]').forEach(el => {
                 el.style.display = type === 'newapi' ? '' : 'none';
             });
-            card.querySelectorAll('[data-site-field="sub2api"], [data-account-field="sub2api"]').forEach(el => {
+            card.querySelectorAll('[data-account-field="sub2api"]').forEach(el => {
                 el.style.display = type === 'sub2api' ? '' : 'none';
+            });
+            card.querySelectorAll('.account-item').forEach(item => {
+                item.classList.toggle('sub2api-mode', type === 'sub2api');
             });
         }
 
@@ -1708,7 +1726,7 @@
 
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
-                alert(`✅ 成功保存 ${sites.length} 个站点配置到本地！\n\n⚠️ 提示：Session / Token 以明文形式存储，请注意安全。`);
+                alert(`✅ 成功保存 ${sites.length} 个站点配置到本地！\n\n⚠️ 提示：Session Cookie 以明文形式存储，请注意安全。`);
             } catch (e) { alert('❌ 保存失败：' + e.message); }
         }
 
@@ -2079,3 +2097,572 @@
                 name: 'ThingProxy',
                 host: 'thingproxy.freeboard.io',
                 note: '免费，适合 JSON 接口',
+                tag: 'note',
+            },
+            {
+                url: 'https://cors-anywhere.herokuapp.com/',
+                name: 'CORS Anywhere',
+                host: 'cors-anywhere.herokuapp.com',
+                note: '需先打开其首页点击 Request temporary access 激活',
+                tag: 'warn',
+            },
+            {
+                url: 'https://api.codetabs.com/v1/proxy?quest=',
+                name: 'AllOrigins Fallback',
+                host: 'api.allorigins.win/raw',
+                note: '备用镜像',
+                tag: 'note',
+            },
+        ];
+
+        function renderCorsProxyList(filter) {
+            const q = (filter || '').toLowerCase();
+            const body = document.getElementById('cors-modal-body');
+            const currentUrl = document.getElementById('cors-proxy-url').value.trim();
+
+            body.innerHTML = CORS_PROXIES.filter(p => {
+                if (!q) return true;
+                return p.name.toLowerCase().includes(q) || p.host.toLowerCase().includes(q);
+            }).map(p => {
+                const isActive = p.url === currentUrl;
+                const tagMap = {
+                    recommended: { text: '推荐', cls: 'recommended' },
+                    note: { text: '提示', cls: 'note' },
+                    warn: { text: '注意', cls: 'warn' },
+                };
+                const tag = tagMap[p.tag] || null;
+                return `
+                    <div class="cors-proxy-opt${isActive ? ' active' : ''}" data-url="${p.url}" onclick="selectCorsProxy('${p.url}', '${p.name}')">
+                        <div class="cors-proxy-opt-name">${p.name}</div>
+                        <div class="cors-proxy-opt-host">${p.host}</div>
+                        <span class="cors-proxy-opt-tag ${tag.cls}">${tag.text}</span>
+                        <span style="font-size:12px;color:rgba(255,255,255,0.35);margin-left:6px;">${p.note}</span>
+                        ${isActive ? '<span class="cors-proxy-opt-tag recommended" style="margin-left:8px;">✓ 当前</span>' : ''}
+                    </div>`;
+            }).join('');
+
+            // 自定义地址选项
+            body.innerHTML += `
+                <div class="cors-proxy-opt cors-proxy-custom" onclick="selectCustomProxy()">
+                    <div class="cors-proxy-opt-name">✏️ 手动输入自定义地址</div>
+                    <div class="cors-proxy-opt-custom-tip" style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">粘贴你自己的 CORS 代理或自建代理地址</div>
+                </div>`;
+        }
+
+        function openCorsProxyPicker() {
+            const overlay = document.getElementById('cors-modal-overlay');
+            overlay.classList.remove('hidden');
+            renderCorsProxyList('');
+            // focus 搜索框
+            requestAnimationFrame(() => {
+                document.getElementById('cors-modal-search').value = '';
+                document.getElementById('cors-modal-search').focus();
+            });
+            // 标记按钮为打开态
+            document.getElementById('cors-proxy-picker-btn').classList.add('open');
+        }
+
+        function closeCorsProxyPicker() {
+            document.getElementById('cors-modal-overlay').classList.add('hidden');
+            document.getElementById('cors-proxy-picker-btn').classList.remove('open');
+        }
+
+        function closeCorsProxyPickerOutside(e) {
+            if (e.target === document.getElementById('cors-modal-overlay')) {
+                closeCorsProxyPicker();
+            }
+        }
+
+        function filterCorsProxies(val) {
+            renderCorsProxyList(val);
+        }
+
+        function selectCorsProxy(url, name) {
+            document.getElementById('cors-proxy-url').value = url;
+            document.getElementById('cors-proxy-url').style.display = 'block';
+            document.getElementById('cors-proxy-friendly-name').textContent = `✅ 已选择：${name}（${url}）`;
+            closeCorsProxyPicker();
+            updateCorsProxyPreview();
+            autoSaveCloudConfig();
+        }
+
+        function selectCustomProxy() {
+            closeCorsProxyPicker();
+            const input = document.getElementById('cors-proxy-url');
+            input.style.display = 'block';
+            input.value = '';
+            input.focus();
+            document.getElementById('cors-proxy-friendly-name').textContent = '';
+            updateCorsProxyPreview();
+            autoSaveCloudConfig();
+        }
+
+        // ESC 关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCorsProxyPicker();
+        });
+
+        function toggleCorsProxy() {
+            const enabled = document.getElementById('cors-proxy-enabled').checked;
+            document.getElementById('cors-proxy-warning').style.display = enabled ? 'block' : 'none';
+            if (enabled) {
+                openCorsProxyPicker();
+            } else {
+                document.getElementById('cors-proxy-url').style.display = 'none';
+                document.getElementById('cors-proxy-url').value = '';
+                document.getElementById('cors-proxy-friendly-name').textContent = '';
+                const btn = document.getElementById('cors-proxy-picker-btn');
+                btn.innerHTML = '<span>选择内置代理或填写自定义地址</span><span class="cors-proxy-picker-arrow">▸</span>';
+                btn.classList.remove('selected');
+                updateCorsProxyPreview();
+                autoSaveCloudConfig();
+            }
+        }
+
+        // ─── 下载页面代码（恢复逻辑已移至 loadCloudConfigFromLocal）──
+
+        function downloadThisPage() {
+            const html = document.documentElement.outerHTML;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config_generator.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function buildCloudUrl() {
+            let baseUrl = document.getElementById('cloud-url').value.trim();
+            const filename = document.getElementById('cloud-filename').value.trim() || 'newapi-config.json';
+
+            if (!baseUrl) return null;
+
+            if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+            const preset = document.querySelector('.cloud-preset-btn.active')?.id?.replace('preset-', '') || '';
+
+            if (preset === 'jianguoyun') {
+                const username = document.getElementById('cloud-username').value.trim();
+                if (username) {
+                    baseUrl += `${username}/${filename}`;
+                } else {
+                    baseUrl += filename;
+                }
+            } else if (preset === 'nextcloud') {
+                if (!baseUrl.includes('/files/')) {
+                    const username = document.getElementById('cloud-username').value.trim();
+                    baseUrl += `files/${username || 'USERNAME'}/${filename}`;
+                } else {
+                    if (!baseUrl.endsWith(filename)) {
+                        baseUrl = baseUrl.replace(/\/$/, '') + '/' + filename;
+                    }
+                }
+            } else {
+                baseUrl += filename;
+            }
+
+            const corsProxyEnabled = document.getElementById('cors-proxy-enabled').checked;
+            const corsProxyUrl = document.getElementById('cors-proxy-url').value.trim();
+            if (corsProxyEnabled && corsProxyUrl) {
+                const proxyBase = corsProxyUrl.endsWith('/') ? corsProxyUrl : corsProxyUrl + '/';
+                baseUrl = proxyBase + baseUrl;
+            }
+
+            return baseUrl;
+        }
+
+        function buildCloudHeaders() {
+            const authType = document.getElementById('cloud-auth-type').value;
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (authType === 'basic') {
+                const username = document.getElementById('cloud-username').value.trim();
+                const password = document.getElementById('cloud-password').value.trim();
+                if (!username || !password) {
+                    showCloudStatus('error', '请填写用户名和密码');
+                    return null;
+                }
+                headers['Authorization'] = 'Basic ' + btoa(username + ':' + password);
+            } else {
+                const token = document.getElementById('cloud-token').value.trim();
+                if (!token) {
+                    showCloudStatus('error', '请填写访问令牌');
+                    return null;
+                }
+                headers['Authorization'] = 'Bearer ' + token;
+            }
+
+            return headers;
+        }
+
+        function showCloudStatus(type, message) {
+            const status = document.getElementById('cloud-status');
+            status.className = 'cloud-status ' + type;
+            status.textContent = message;
+            status.style.display = 'block';
+        }
+
+        function hideCloudStatus() {
+            const status = document.getElementById('cloud-status');
+            status.style.display = 'none';
+        }
+
+        function generateAccountsJSON() {
+            const accounts = [];
+            const siteCards = document.querySelectorAll('.site-card');
+
+            siteCards.forEach(card => {
+                const siteId = card.id.split('-')[1];
+                const url = document.getElementById(`site-url-${siteId}`).value.trim();
+                const cfClearance = document.getElementById(`site-cfclearance-${siteId}`).value.trim();
+
+                if (!url) return;
+                const fullUrl = url.startsWith('http') ? url : 'https://' + url;
+
+                const accItems = card.querySelectorAll('.account-item');
+                accItems.forEach(item => {
+                    const parts = item.id.split('-');
+                    const sId = parts[1];
+                    const aId = parts[2];
+                    const session = document.getElementById(`acc-session-${sId}-${aId}`).value.trim();
+                    const userId = document.getElementById(`acc-userid-${sId}-${aId}`).value.trim();
+                    const name = document.getElementById(`acc-name-${sId}-${aId}`).value.trim();
+
+                    if (!session) return;
+
+                    const account = {
+                        url: fullUrl,
+                        session: session,
+                        user_id: userId,
+                        name: name || `站点${siteId}-账号${aId}`
+                    };
+
+                    if (cfClearance) {
+                        account.cf_clearance = cfClearance;
+                    }
+
+                    accounts.push(account);
+                });
+            });
+
+            return accounts;
+        }
+
+        async function saveToCloud() {
+            const url = buildCloudUrl();
+            const headers = buildCloudHeaders();
+
+            if (!url) {
+                showCloudStatus('error', '请填写 WebDAV 地址');
+                return;
+            }
+            if (!headers) return;
+
+            const accounts = generateAccountsJSON();
+            if (accounts.length === 0) {
+                showCloudStatus('error', '没有可保存的配置，请先填写账号信息');
+                return;
+            }
+
+            const dingtalk = {
+                webhook: '',
+                secret: ''
+            };
+
+            const configPayload = {
+                accounts: accounts,
+                dingtalk: dingtalk,
+                updated_at: new Date().toISOString()
+            };
+
+            showCloudStatus('info', '正在保存到云端...');
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(configPayload, null, 2)
+                });
+
+                if (resp.ok || resp.status === 201 || resp.status === 204) {
+                    showCloudStatus('success', `✅ 配置已保存到云端！共 ${accounts.length} 个账号`);
+                    saveCloudConfigToLocal();
+
+                    const configUrl = url;
+                    const authType = document.getElementById('cloud-auth-type').value;
+                    const username = document.getElementById('cloud-username').value.trim();
+                    const password = document.getElementById('cloud-password').value.trim();
+                    const token = document.getElementById('cloud-token').value.trim();
+                    let authStr = '';
+                    if (authType === 'basic') {
+                        authStr = `${username}:${password}`;
+                    } else {
+                        authStr = `token:${token}`;
+                    }
+
+                    generateConfig();
+                    updateCloudUsageTip(configUrl, authStr);
+                } else if (resp.status === 401) {
+                    showCloudStatus('error', '❌ 认证失败：用户名或密码不正确');
+                } else if (resp.status === 404) {
+                    showCloudStatus('error', '❌ 路径不存在：请检查 WebDAV 地址和文件路径');
+                } else if (resp.status === 403) {
+                    showCloudStatus('error', '❌ 权限不足：无法写入该路径');
+                } else {
+                    showCloudStatus('error', `❌ 保存失败：HTTP ${resp.status}`);
+                }
+            } catch (e) {
+                if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
+                    const isChrome = /Chrome\//.test(navigator.userAgent) && !/Edg\//.test(navigator.userAgent);
+                    const protocol = window.location.protocol;
+                    let tips = '';
+                    if (protocol === 'file:' && isChrome) {
+                        tips = '\n\n💡 Chrome 不允许 file:// 向 HTTPS 发送请求，请：\n1. 启用「CORS 代理」\n2. 用 Firefox 打开本文件\n3. 检查地址和网络是否正常';
+                    } else if (protocol === 'file:') {
+                        tips = '\n\n💡 请检查：\n1. WebDAV 地址是否正确可达\n2. 网络连接是否正常\n3. HTTPS 证书是否有效';
+                    } else {
+                        tips = '\n\n💡 解决方案（按推荐顺序）：\n1. 启用「CORS 代理」（最快捷）\n2. 下载本页面后用 Firefox 打开\n3. 群晖/NextCloud 在服务端配置 CORS 头\n4. 坚果云不支持自定义 CORS，请用方案 1 或 2';
+                    }
+                    showCloudStatus('error', '❌ 连接失败：可能是 CORS 跨域限制或地址不可达' + tips);
+                } else {
+                    showCloudStatus('error', `❌ 保存失败：${e.message}`);
+                }
+            }
+        }
+
+        async function loadFromCloud() {
+            const url = buildCloudUrl();
+            const headers = buildCloudHeaders();
+
+            if (!url) {
+                showCloudStatus('error', '请填写 WebDAV 地址');
+                return;
+            }
+            if (!headers) return;
+
+            showCloudStatus('info', '正在从云端加载...');
+
+            try {
+                const getHeaders = { ...headers };
+                delete getHeaders['Content-Type'];
+
+                const resp = await fetch(url, {
+                    method: 'GET',
+                    headers: getHeaders
+                });
+
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        showCloudStatus('error', '❌ 认证失败：用户名或密码不正确');
+                    } else if (resp.status === 404) {
+                        showCloudStatus('error', '❌ 文件不存在：云端尚未保存配置');
+                    } else {
+                        showCloudStatus('error', `❌ 加载失败：HTTP ${resp.status}`);
+                    }
+                    return;
+                }
+
+                const text = await resp.text();
+                const data = JSON.parse(text);
+
+                let accounts;
+                if (Array.isArray(data)) {
+                    accounts = data;
+                } else if (data.accounts && Array.isArray(data.accounts)) {
+                    accounts = data.accounts;
+                } else {
+                    showCloudStatus('error', '❌ 配置格式错误：无法解析账号列表');
+                    return;
+                }
+
+                loadFlatData(accounts);
+                showCloudStatus('success', `✅ 成功从云端加载 ${accounts.length} 个账号配置！`);
+                saveCloudConfigToLocal();
+            } catch (e) {
+                if (e instanceof SyntaxError) {
+                    showCloudStatus('error', '❌ 配置文件不是有效的 JSON 格式');
+                } else if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
+                    const protocol = window.location.protocol;
+                    let tips = '';
+                    if (protocol !== 'file:') {
+                        tips = '\n\n💡 解决方案：\n1. 下载本页面到本地打开（绕过 CORS）\n2. 启用「CORS 代理」\n3. 在服务端配置 CORS 允许头';
+                    } else {
+                        tips = '\n\n💡 请检查 WebDAV 地址和网络连接';
+                    }
+                    showCloudStatus('error', '❌ 网络请求失败：可能是 CORS 跨域限制或地址不可达' + tips);
+                } else {
+                    showCloudStatus('error', `❌ 加载失败：${e.message}`);
+                }
+            }
+        }
+
+        async function testCloudConnection() {
+            let url = document.getElementById('cloud-url').value.trim();
+            const headers = buildCloudHeaders();
+
+            if (!url) {
+                showCloudStatus('error', '请填写 WebDAV 地址');
+                return;
+            }
+            if (!headers) return;
+
+            if (!url.endsWith('/')) url += '/';
+
+            const corsProxyEnabled = document.getElementById('cors-proxy-enabled').checked;
+            const corsProxyUrl = document.getElementById('cors-proxy-url').value.trim();
+            if (corsProxyEnabled && corsProxyUrl) {
+                const proxyBase = corsProxyUrl.endsWith('/') ? corsProxyUrl : corsProxyUrl + '/';
+                url = proxyBase + url;
+            }
+
+            showCloudStatus('info', '正在测试连接...');
+
+            try {
+                const testHeaders = { ...headers };
+                delete testHeaders['Content-Type'];
+
+                const resp = await fetch(url, {
+                    method: 'PROPFIND',
+                    headers: {
+                        ...testHeaders,
+                        'Depth': '0'
+                    }
+                });
+
+                if (resp.ok || resp.status === 207) {
+                    showCloudStatus('success', '✅ 连接成功！WebDAV 服务可正常访问');
+                } else if (resp.status === 401) {
+                    showCloudStatus('error', '❌ 连接失败：认证错误（用户名/密码不正确）');
+                } else if (resp.status === 404) {
+                    showCloudStatus('success', '⚠️ 地址可达但路径不存在（首次保存时会自动创建文件）');
+                } else {
+                    showCloudStatus('error', `❌ 连接测试返回 HTTP ${resp.status}`);
+                }
+            } catch (e) {
+                if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
+                    const protocol = window.location.protocol;
+                    let tips = '';
+                    if (protocol !== 'file:') {
+                        tips = '\n\n💡 解决方案：\n1. 下载本页面到本地打开（绕过 CORS）\n2. 启用「CORS 代理」\n3. 在服务端配置 CORS 允许头';
+                    } else {
+                        tips = '\n\n💡 请检查地址和网络连接';
+                    }
+                    showCloudStatus('error', '❌ 连接失败：可能是 CORS 跨域限制或地址不可达' + tips);
+                } else {
+                    showCloudStatus('error', `❌ 连接测试失败：${e.message}`);
+                }
+            }
+        }
+
+        function updateCloudUsageTip(configUrl, authStr) {
+            const resultTips = document.querySelector('#result .tips');
+            if (!resultTips) return;
+
+            const existingCloudTip = resultTips.querySelector('.cloud-usage-tip');
+            if (existingCloudTip) existingCloudTip.remove();
+
+            const maskedAuth = maskAuthStr(authStr);
+            const maskedUrl = maskStr(configUrl.replace(/^https?:\/\//, ''));
+
+            const cloudTip = document.createElement('div');
+            cloudTip.className = 'cloud-usage-tip';
+            cloudTip.style.cssText = 'margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(52,211,153,0.2);';
+            cloudTip.innerHTML = `
+                <h4 style="color: #34d399; margin-bottom: 12px;">☁️ 云端配置使用方法：</h4>
+                <ul style="margin-left: 20px; color: rgba(255,255,255,0.65);">
+                    <li style="margin-bottom: 8px;">在 GitHub 仓库 <code>Settings → Secrets</code> 中添加：</li>
+                    <li style="margin-bottom: 8px;"><code>CONFIG_URL</code> = <span style="color:#34d399;">${maskedUrl}...</span> <button class="btn btn-secondary btn-xs" style="padding:4px 10px;font-size:12px;" onclick="copySecretValue('config_url')">复制</button></li>
+                    <li style="margin-bottom: 8px;"><code>CONFIG_AUTH</code> = <span style="color:#34d399;">${maskedAuth}</span> <button class="btn btn-secondary btn-xs" style="padding:4px 10px;font-size:12px;" onclick="copySecretValue('config_auth')">复制</button></li>
+                    <li style="margin-bottom: 8px;">签到脚本会优先从云端拉取配置，无需每次修改后推代码</li>
+                </ul>
+            `;
+            resultTips.appendChild(cloudTip);
+
+            window._cloudSecrets = { config_url: configUrl, config_auth: authStr };
+        }
+
+        function maskAuthStr(authStr) {
+            if (!authStr) return '****';
+            if (authStr.startsWith('token:')) {
+                const token = authStr.substring(6);
+                if (token.length <= 4) return 'token:****';
+                return 'token:' + token.substring(0, 4) + '****';
+            }
+            const colonIdx = authStr.indexOf(':');
+            if (colonIdx < 0) return '****';
+            const user = authStr.substring(0, colonIdx);
+            const pass = authStr.substring(colonIdx + 1);
+            return user + ':' + (pass.length <= 4 ? '****' : pass.substring(0, 2) + '****');
+        }
+
+        function copySecretValue(key) {
+            const value = window._cloudSecrets?.[key] || '';
+            if (!value) return;
+            const btn = event.target;
+            const orig = btn.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(value).then(() => {
+                    btn.textContent = '✅';
+                    btn.style.color = '#34d399';
+                    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+                });
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = value;
+                ta.style.cssText = 'position:fixed;top:-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                btn.textContent = '✅';
+                btn.style.color = '#34d399';
+                setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+            }
+        }
+    // ===== Cursor Spotlight on Site Cards =====
+        document.querySelectorAll('.site-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                card.style.setProperty('--mouse-x', x + '%');
+                card.style.setProperty('--mouse-y', y + '%');
+            });
+        });
+
+        // ===== Magnetic Button Hover =====
+        document.querySelectorAll('.btn-primary, .btn-success, .btn-download').forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const dx = e.clientX - rect.left - rect.width / 2;
+                const dy = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${dx / 10}px, ${dy / 10 - 2}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = '';
+            });
+        });
+    </script>
+<!-- CORS 代理选择弹窗 -->
+    <div class="cors-modal-overlay hidden" id="cors-modal-overlay" onclick="closeCorsProxyPickerOutside(event)">
+        <div class="cors-modal" id="cors-modal">
+            <div class="cors-modal-header">
+                <h3>🌐 选择 CORS 代理</h3>
+                <button class="cors-modal-close" onclick="closeCorsProxyPicker()">✕</button>
+            </div>
+            <div class="cors-modal-search">
+                <input type="text" id="cors-modal-search" placeholder="搜索代理…" oninput="filterCorsProxies(this.value)" autocomplete="off">
+            </div>
+            <div class="cors-modal-body" id="cors-modal-body">
+                <!-- 由 JS 渲染 -->
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
