@@ -360,6 +360,7 @@ class Sub2APICheckin:
         self.checkin_api = checkin_api or 'auto'
         self.session = requests.Session()
         self.device_fingerprint = self._device_fingerprint(auth_token)
+        self.csrf_token = ''
         self.session.headers.update({
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
@@ -379,6 +380,15 @@ class Sub2APICheckin:
             'X-Request-Id': str(uuid.uuid4()),
         }
         if method.upper() != 'GET':
+            # Sub2API 的 extension 签到接口要求携带 CSRF token。
+            # 该 token 通常由 /api/checkin-sidebar/status 或 bootstrap
+            # 在 JSON 响应中返回，而不是通过 cookie 下发。
+            from urllib.parse import unquote
+            xsrf = self.csrf_token or self.session.cookies.get('XSRF-TOKEN', domain=None)
+            if xsrf:
+                # cookie 值可能被 URL 编码，解码后使用
+                xsrf = unquote(xsrf)
+                headers['X-CSRF-Token'] = xsrf
             headers.update({
                 'Idempotency-Key': str(uuid.uuid4()),
                 'X-Requested-With': 'XMLHttpRequest',
@@ -418,9 +428,20 @@ class Sub2APICheckin:
 
     def _parse_json(self, resp):
         try:
-            return resp.json()
+            data = resp.json()
+            self._remember_csrf(data)
+            return data
         except json.JSONDecodeError:
             return None
+
+    def _remember_csrf(self, data):
+        if not isinstance(data, dict):
+            return
+        token = data.get('csrfToken')
+        if not token and isinstance(data.get('data'), dict):
+            token = data['data'].get('csrfToken')
+        if token:
+            self.csrf_token = str(token)
 
     def _unwrap(self, data):
         if isinstance(data, dict) and data.get('code') == 0 and 'data' in data:
@@ -482,7 +503,7 @@ class Sub2APICheckin:
         if api_name == 'v1':
             resp = self._request('POST', '/api/v1/check-in', json_body={'turnstile_token': None})
         else:
-            resp = self._request('POST', '/api/checkin-sidebar/checkin', json_body={})
+            resp = self._request('POST', '/api/checkin-sidebar/checkin', json_body={'source': 'sidebar'})
 
         data = self._parse_json(resp)
         if resp.status_code != 200 or data is None:
